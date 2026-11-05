@@ -107,6 +107,25 @@ function injectArchiveLink(html) {
   return html + `\n${ARCHIVE_LINK_HTML}\n`;
 }
 
+// La portada no es una copia: es un _redirects 200 que reescribe "/" al
+// contenido de /archivo/<slug>/ sin cambiar la URL de la barra de
+// direcciones. Para el navegador, la URL del documento sigue siendo "/"
+// — así que cualquier ruta RELATIVA de la página (una imagen propia, un
+// iframe propio) resolvería contra "/" y no contra "/archivo/<slug>/",
+// rompiéndose justo cuando la página es la portada (aunque funcionara
+// perfectamente al visitarla ya archivada). Un <base> fijo lo arregla:
+// las rutas relativas siempre resuelven contra /archivo/<slug>/, tanto
+// si el documento llegó por la portada como por su URL de archivo; las
+// rutas absolutas (/css/..., /archivo/...) no las toca.
+function injectBase(html, slug) {
+  const baseTag = `<base href="/archivo/${slug}/">`;
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head[^>]*>/i, (m) => `${m}\n  ${baseTag}`);
+  }
+  log(`   (sin <head>: el <base> se añade al principio del fichero, paginas/${slug})`);
+  return `${baseTag}\n${html}`;
+}
+
 function writePage(slug) {
   const srcDir = join(PAGINAS, slug);
   const outDir = join(DIST, "archivo", slug);
@@ -119,7 +138,7 @@ function writePage(slug) {
   }
 
   const { html } = readMeta(slug);
-  writeFileSync(join(outDir, "index.html"), injectArchiveLink(html));
+  writeFileSync(join(outDir, "index.html"), injectBase(injectArchiveLink(html), slug));
 }
 
 // --------------------------- 4. Índice del archivo -------------------------
