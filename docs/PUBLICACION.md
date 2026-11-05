@@ -61,6 +61,30 @@ trabajo en otra sesión: lee este fichero entero y ve directo a
 Todo lo pedido en el encargo original está aplicado. No queda ninguna
 protección pendiente por falta de plan o de acceso.
 
+### ⚠️ Pendiente de revisar — GitHub App de Cloudflare
+
+Al abrir la primera PR real apareció un check `Workers Builds: eltiburon-win`,
+posteado por la GitHub App **"Cloudflare Workers and Pages"** (no por
+nuestros workflows). Investigado:
+
+- El proyecto Pages **no tiene `source` (conexión Git) configurado** —
+  confirmado por API (`GET .../pages/projects/eltiburon-win`, sin campo
+  `source`).
+- Los 6 despliegues existentes hasta ahora son todos `ad_hoc` en `main`
+  — es decir, todos proceden de `wrangler pages deploy` (manual o vía
+  `deploy.yml`), ninguno de otra vía.
+- Ese check no bloquea el ruleset (el único status check exigido es
+  `validar`).
+
+No hay evidencia de que se haya publicado nada por esa vía, pero el
+token usado (permiso Pages:Edit únicamente) no alcanza para ver ni
+desconectar la instalación de esa GitHub App a nivel de cuenta — haría
+falta revisarlo desde el propio panel de Cloudflare (Settings del
+proyecto → Builds) y/o GitHub (Settings → Applications → Installed
+GitHub Apps → Cloudflare Workers and Pages → repositorios con acceso).
+**Pendiente de que el usuario lo revise cuando pueda** — no es
+bloqueante ahora mismo, pero conviene cerrarlo del todo.
+
 ## Cambios de estructura realizados
 
 - 2026-11-05 — estructura inicial (commit `71598fe`).
