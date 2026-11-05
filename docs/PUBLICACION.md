@@ -76,14 +76,27 @@ nuestros workflows). Investigado:
 - Ese check no bloquea el ruleset (el único status check exigido es
   `validar`).
 
-No hay evidencia de que se haya publicado nada por esa vía, pero el
-token usado (permiso Pages:Edit únicamente) no alcanza para ver ni
-desconectar la instalación de esa GitHub App a nivel de cuenta — haría
-falta revisarlo desde el propio panel de Cloudflare (Settings del
-proyecto → Builds) y/o GitHub (Settings → Applications → Installed
-GitHub Apps → Cloudflare Workers and Pages → repositorios con acceso).
-**Pendiente de que el usuario lo revise cuando pueda** — no es
-bloqueante ahora mismo, pero conviene cerrarlo del todo.
+**Actualización**: en la Pull Request #1 se confirmó que sí intenta
+desplegar de verdad — comentario de `cloudflare-workers-and-pages[bot]`:
+*"🚀 Deploying Preview to Cloudflare"*, con un build que terminó en
+**`Build: Failed ❌`** (sin URL de despliegue, no llegó a publicar
+nada). O sea: el intento es real y se dispara en cada push, pero ahora
+mismo no consigue completarse. No es fiable asumir que seguirá
+fallando para siempre.
+
+El token usado (permiso Pages:Edit únicamente) no alcanza para ver ni
+desconectar esa integración — haría falta que el usuario lo revise:
+- **Más directo**: GitHub → tu perfil → Settings → Applications →
+  Installed GitHub Apps → **Cloudflare Workers and Pages** → Configure
+  → en "Repository access", quitar `eltiburon.win` (o restringir a
+  "Only select repositories" sin incluirlo).
+- Alternativa en Cloudflare: panel → proyecto `eltiburon-win` →
+  Settings → busca una sección de Git/Builds y desconéctala ahí.
+
+**Pendiente de que el usuario lo haga** — no bloquea el funcionamiento
+actual (el build falla antes de publicar nada, y de todas formas no
+afecta al ruleset ni a `deploy.yml`), pero mientras no se desconecte no
+hay garantía total de que la única vía de publicar sea `deploy.yml`.
 
 ## Cambios de estructura realizados
 
