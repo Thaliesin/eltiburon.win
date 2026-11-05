@@ -8,121 +8,74 @@ trabajo en otra sesión: lee este fichero entero y ve directo a
 
 | Dato | Valor |
 |---|---|
-| Repositorio | `Thaliesin/eltiburon.win` — confirmado |
-| Visibilidad | **Privada** — confirmado por API (`gh repo view`) |
-| Plan de GitHub | **Free** — confirmado por API: no permite branch protection/rulesets en repos privados (ver bloqueo más abajo, es el único punto que falta) |
-| Carpeta local | `C:\desarrollo\eltiburon.win` (nueva, distinta de `C:\desarrollo\eltibuton.win`, otro proyecto del usuario sin relación) |
-| Dominio | `https://eltiburon.win/` — **sin** `www` — **activo**, responde 200 |
-| Aprobador único | `Thaliesin` — confirmado |
-| Proyecto Cloudflare Pages | `eltiburon-win`, modo Direct Upload — **creado y publicando** |
-| Cloudflare Account ID | `1b58d65304c59a1739d0951c7851268e` |
-| Aprobación de solicitudes de colaboradores | **Una sola**: la del Pull Request. Sin "required reviewers" en el Environment — el despliegue sale automático al fusionar. |
-| Nombre de la web | eltiburon.win |
-| Nombre de la sección de archivo | "Archivo", en `/archivo/` |
+| Repositorio | `Thaliesin/eltiburon.win` |
+| Visibilidad | **Pública** — decisión del usuario (el plan Free no permite proteger `main` en repos privados; ver "Decisiones tomadas") |
+| Carpeta local | `C:\desarrollo\eltiburon.win` |
+| Dominio | `https://eltiburon.win/` — sin `www` — **activo**, responde 200 |
+| Aprobador único | `Thaliesin` |
+| Proyecto Cloudflare Pages | `eltiburon-win`, modo Direct Upload — publicando |
+| Aprobación de solicitudes de colaboradores | Una sola: la del Pull Request (ruleset, con Code Owners obligatorio). Sin "required reviewers" en el Environment — el despliegue sale automático al fusionar. |
+| Colaboración | Por **fork**: cualquiera puede proponer, nadie necesita invitación |
 
-## Checklist
+## Checklist — todo lo de la lista original está hecho
 
-### Repositorio, estructura y ficheros — ✅ todo hecho y en `main`
-- ✅ Repo clonado, identidad de git local configurada (`Thaliesin <david.esquiu@gmail.com>`, solo en este repo).
-- ✅ Tres commits en `main`: andamiaje inicial (`71598fe`), `.gitignore` de `.wrangler/` (`0ee0f13`), este documento (`a4a7c27`).
-- ✅ `CLAUDE.md`, `README.md`, `docs/APROBAR.md`, `docs/COMO-SOLICITAR-UNA-SUBIDA.md`.
-- ✅ `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`.
-- ✅ `.github/workflows/validar.yml` — sin `pull_request_target`, sin secrets, ejecuta siempre la copia de `scripts/validar-pr.mjs` de `main`. Pendiente probarlo contra una Pull Request real.
-- ✅ `.github/workflows/deploy.yml` — **probado de punta a punta y funcionando**: disparado a mano (`workflow_dispatch`) tras guardar los secrets, build (11 s) + deploy (28 s), los dos en verde. `https://eltiburon-win.pages.dev` y `https://eltiburon.win` sirven el contenido generado.
-- ✅ `scripts/build.mjs`, `scripts/nueva-pagina.mjs` — probados localmente (ver sesión anterior de este documento en el historial de git para el detalle de las pruebas).
-- ✅ `package.json`, `.gitignore`, `paginas/_ejemplo/`, `css/base.css`.
+### Repositorio, estructura y workflows
+- ✅ Estructura completa en `main`: `CLAUDE.md`, `README.md`, `docs/`, `.github/`, `scripts/`, `css/`, `js/`, `img/`, `paginas/_ejemplo/`.
+- ✅ `scripts/build.mjs`, `scripts/validar-pr.mjs`, `scripts/nueva-pagina.mjs` — probados.
+- ✅ `.github/workflows/deploy.yml` — probado de punta a punta, en verde.
+- ✅ `.github/workflows/validar.yml` + `.github/workflows/comentar-validacion.yml` — **dos workflows**, no uno. Motivo: al pasar el repo a público, las Pull Requests llegan sobre todo desde **forks**, y GitHub le retira el permiso de escritura al token del workflow `pull_request` en ese caso (ocurre aunque se declare `permissions: pull-requests: write`; es una restricción de seguridad de GitHub, no un bug). Patrón aplicado (el recomendado por GitHub para este caso):
+  - `validar.yml` corre con el código de la PR (de quien sea, no de confianza), sin ningún permiso de escritura ni secrets; deja el informe como artefacto.
+  - `comentar-validacion.yml` se dispara después (`workflow_run`), corre siempre con el código de `main` (nunca con el de la PR), y solo lee ese artefacto de texto para comentar — por eso sí puede tener permiso de escritura con seguridad.
+  - Pendiente de ver en marcha con una Pull Request real (ver "Próximo paso").
+- ✅ `scripts/nueva-pagina.mjs` ajustado para fork: detecta el propietario real de `origin` y construye la URL de comparación entre repos cuando hace falta; usa `upstream/main` como base si ese remoto existe. De paso se corrigió un bug en la regex que no reconocía nombres de repositorio con punto (como `eltiburon.win`, el propio nombre de este repo).
+- ✅ `docs/COMO-SOLICITAR-UNA-SUBIDA.md` reescrita para el flujo de fork (Vía 1 web y Vía 2 con Git), tanto la pantalla de GitHub que fuerza el fork al editar sin permiso de escritura, como el `git clone` del propio fork.
 
-### Cloudflare — ✅ todo hecho
-- ✅ Proyecto Pages `eltiburon-win` creado en modo Direct Upload (sin integración Git de Cloudflare).
-- ✅ Dominio `eltiburon.win` asociado y **activo** (el usuario añadió el registro CNAME; confirmado con `curl` devolviendo 200).
-- ✅ `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` guardados como secrets del **Environment `produccion`** en GitHub (no del repositorio). No están escritos en ningún fichero versionado.
+### GitHub — hecho
+- ✅ Repositorio pasado a **público** (decisión del usuario, confirmada por API).
+- ✅ Colaboradores revisados: solo `Thaliesin`, admin.
+- ✅ **Ruleset de `main` creado y confirmado funcionando**: Pull Request obligatoria, 1 aprobación, **Code Owners obligatorio** (`require_code_owner_review: true`), check `validar` obligatorio, sin force-push ni borrado, bypass solo para el rol Admin (= Thaliesin, único admin del repo). Confirmado en vivo: el push de este mismo cambio mostró `Bypassed rule violations for refs/heads/main: Changes must be made through a pull request / Required status check "validar" is expected` — es decir, a Thaliesin le dejó pasar (bypass) y a cualquier otro lo habría bloqueado.
+- ✅ Environment `produccion` con los dos secrets de Cloudflare (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`), sin protection rules (coherente con la aprobación única elegida).
 
-### GitHub — acceso conseguido, la mayoría hecho
-- ✅ Token personal clásico del usuario, scope `repo`, verificado contra la API (confirma identidad `Thaliesin`). `gh` CLI ya estaba instalado en la máquina (solo faltaba en el PATH de la sesión); autenticado vía `GH_TOKEN` (el flujo normal `gh auth login --with-token` lo rechazó por no tener el scope `read:org`, que no hace falta para nada de esto — usar la variable de entorno lo evita).
-- ✅ Colaboradores revisados: solo `Thaliesin`, rol admin. Nadie más tiene acceso todavía.
-- ✅ Environment `produccion` creado, sin protection rules (coherente con la aprobación única elegida).
-- ✅ Los dos secrets de Cloudflare guardados ahí (`gh secret set`).
-- ❌ **Ruleset de `main` — BLOQUEADO por el plan.** Intentado con la API moderna (Rulesets) y con la clásica (branch protection): las dos devuelven `403 Upgrade to GitHub Pro or make this repository public to enable this feature`. Confirmado con pruebas reales contra la API, no es una suposición. Es el único requisito de la petición original que falta por cumplir — ver "Decisión pendiente del usuario" más abajo.
-- ⏳ "Require review from Code Owners" — depende de lo anterior (es un parámetro del propio ruleset).
-- ⏳ Invitar a los amigos colaboradores — con sentido dejarlo para después de resolver el ruleset, así no quedan invitados a un repo todavía sin protección.
+### Cloudflare — hecho
+- ✅ Proyecto Pages `eltiburon-win`, Direct Upload, dominio `eltiburon.win` activo.
 
-### Pendiente — primera página real
-- ⏳ Publicar una primera página (de bienvenida, de Thaliesin) por Pull Request, de principio a fin, en cuanto el ruleset esté activo.
-
-## 🔴 Decisión pendiente del usuario — bloqueo real, no solo burocracia
-
-GitHub **no permite proteger la rama `main` de un repositorio privado en
-el plan Free** — ni con Rulesets (lo nuevo) ni con la protección de rama
-clásica. Las dos vías probadas devuelven el mismo error pidiendo
-upgrade a Pro o hacer el repo público. Sin esto, cualquier colaborador
-con acceso de escritura podría subir directamente a `main` sin pasar
-por una Pull Request, que es justo lo que se quería impedir.
-
-Dos salidas:
-
-1. **Pasar a GitHub Pro** (de pago, revisa el precio actual en
-   github.com/pricing — históricamente unos 4 USD/mes). El repo sigue
-   privado, y todo lo demás queda exactamente como se diseñó: ruleset
-   con tu usuario como único *bypass actor*, Code Owners obligatorio,
-   nada se publica sin tu aprobación. En cuanto esté activado, aplico
-   el ruleset en un minuto (ya está probado, solo falta que la API deje
-   de devolver el 403).
-2. **Hacer el repositorio público.** Gratis, y el ruleset funciona sin
-   más. Cambia dos cosas:
-   - El código fuente (y el historial) se puede ver desde fuera —
-     incluidas las Pull Requests propuestas antes de aprobarlas. El
-     contenido ya publicado en la web es público de todas formas
-     (está en `eltiburon.win`), así que la diferencia real es que las
-     *propuestas todavía no aprobadas* también quedarían visibles.
-   - Tus amigos piden la subida hacienda **fork** en vez de ser
-     invitados como colaboradores (de hecho simplifica un paso: no
-     hace falta gestionar invitaciones). `docs/COMO-SOLICITAR-UNA-SUBIDA.md`
-     tiene ya escrita la variante de "Vía 1" para fork; la until ahora
-     activa es la de colaborador directo — en cuanto decidas, ajusto
-     esa guía a la vía que corresponda.
-
-No voy a decidir esto por ti. Dímelo y en cuanto lo sepa (y, si eliges
-la opción 1, en cuanto esté activado el Pro) remato el ruleset, activo
-Code Owners y lo dejo todo según lo pedido.
+### Pendiente — lo único que queda
+- ⏳ Publicar una primera página real (de bienvenida, de Thaliesin) por Pull Request, de principio a fin, para ver en marcha: `validar.yml` → `comentar-validacion.yml` comentando → ruleset exigiendo aprobación → `deploy.yml` publicando.
+- ⏳ Decidir si además se quiere probar con una Pull Request de **otra cuenta** (fork de verdad, no de Thaliesin) antes de anunciarlo a los amigos — recomendable, para ver el caso real de principio a fin, pero no imprescindible: la lógica es la misma que la de cualquier PR, con la única diferencia de que el workflow de comentarios usa el artefacto en vez de comentar directamente.
+- ⏳ Avisar a los amigos de que ya pueden proponer ideas (enlace a `docs/COMO-SOLICITAR-UNA-SUBIDA.md`).
 
 ## Decisiones tomadas
 
-- **Carpeta local separada**: `C:\desarrollo\eltiburon.win`, distinta de `C:\desarrollo\eltibuton.win`.
-- **Usuario de GitHub = `Thaliesin`**: confirmado por el usuario.
-- **Aprobación única, no doble**: sin "required reviewers" en el Environment `produccion`.
-- **Diseño de portada/archivo por `_redirects`**: cada página vive siempre en `dist/archivo/<slug>/`. Detallado en `CLAUDE.md`.
-- **Metadato `<meta name="autor">`**: convención añadida para el listado del archivo.
-- **Límites de validación**: HTML/CSS/JS hasta 300 KB, imágenes/fuentes hasta 4 MB.
-- **Proyecto Pages creado con `wrangler ... --force`**: necesario una sola vez, para que `wrangler` use la vía clásica de Pages (Direct Upload) en vez de intentar delegar a "Workers con assets". No hace falta en despliegues futuros.
-- **Autenticación de `gh` vía `GH_TOKEN`, no `gh auth login --with-token`**: el token clásico con scope `repo` es suficiente para todo lo que hace falta, pero `gh auth login` por defecto exige también `read:org`, que no se pidió (y no hace falta, al ser un repo personal, no de una organización).
+- **Repositorio público** (no GitHub Pro): elegido por el usuario tras comprobar por API que el plan Free no permite branch protection en repos privados, ni con Rulesets ni con la API clásica (dos pruebas reales, dos `403 Upgrade to GitHub Pro or make this repository public`). Consecuencia asumida: las Pull Requests sin aprobar y el historial son visibles desde fuera; el contenido ya publicado lo era de todas formas, al estar en `eltiburon.win`.
+- **Workflow de validación en dos partes**: necesario específicamente por ser repo público con contribuciones por fork (ver checklist arriba). No era necesario cuando el plan era repo privado con colaboradores invitados (ahí el token sí mantiene permiso de escritura), pero se adoptó el patrón seguro igualmente para que valga sea cual sea el origen de la PR.
+- **Bypass actor del ruleset = rol `Admin` (`RepositoryRole`, id 5), no el usuario `Thaliesin` directamente**: la API de Rulesets no ofrece "este usuario concreto" como tipo de bypass actor en un repositorio personal (no de organización); el rol Admin es el equivalente correcto, y ahora mismo Thaliesin es el único con ese rol.
+- Las decisiones ya registradas en sesiones anteriores (carpeta local, usuario de GitHub, aprobación única, diseño de portada/archivo por `_redirects`, metadato `autor`, límites de validación, creación del proyecto Pages con `--force`, autenticación de `gh` vía `GH_TOKEN`) siguen vigentes sin cambios.
 
-## Protecciones activas y las que no se pudieron aplicar
+## Protecciones activas
 
-- ✅ Cloudflare Pages en modo Direct Upload: la única vía de publicar es `deploy.yml` (confirmado, funcionando).
-- ✅ Secrets de Cloudflare solo en el Environment `produccion`, no en el repositorio.
-- ❌ **Ruleset de `main` (Pull Request + aprobación + Code Owners obligatorios, bypass para Thaliesin) — no aplicado.** Motivo: el plan Free de GitHub no permite branch protection en repos privados (confirmado por API, ver sección de arriba). Pendiente de la decisión del usuario (Pro vs. público).
-- Mientras tanto, **no hay ninguna barrera técnica que impida un push directo a `main`** — de hecho, cualquiera con rol write podría saltarse el flujo de Pull Request por completo. No se debe invitar a ningún colaborador hasta resolver esto.
+- ✅ Ruleset de `main`: PR + aprobación + Code Owners + check `validar` obligatorios; sin force-push ni borrado; bypass solo rol Admin. **Confirmado funcionando**, no solo configurado.
+- ✅ Cloudflare Pages en modo Direct Upload: única vía de publicar es `deploy.yml`.
+- ✅ Secrets de Cloudflare solo en el Environment `produccion`.
+- ✅ El token de validación nunca tiene escritura ni secrets, venga la PR de donde venga.
+
+Todo lo pedido en el encargo original está aplicado. No queda ninguna
+protección pendiente por falta de plan o de acceso.
 
 ## Cambios de estructura realizados
 
-- 2026-11-05 — estructura inicial: `css/`, `js/`, `img/`, `paginas/`, `scripts/`, `docs/`, `.github/` (ver `CLAUDE.md`). Commit `71598fe`.
-- 2026-11-05 — `.gitignore` ignora también `.wrangler/`. Commit `0ee0f13`.
+- 2026-11-05 — estructura inicial (commit `71598fe`).
+- 2026-11-05 — `.gitignore` ignora `.wrangler/` (commit `0ee0f13`).
+- 2026-11-05 — repo pasado a público; ruleset de `main` creado; Environment `produccion` con los secrets de Cloudflare; `validar.yml` dividido en dos workflows por seguridad ante forks; `scripts/nueva-pagina.mjs` adaptado a fork; `docs/COMO-SOLICITAR-UNA-SUBIDA.md` reescrita (commit `92060c7` y anteriores de la misma sesión).
 
 ## Próximo paso
 
-1. **Esperar la decisión del usuario**: GitHub Pro o repositorio
-   público (ver "Decisión pendiente del usuario").
-2. En cuanto se sepa:
-   - Si Pro: confirmar que ya está activo, aplicar el ruleset (JSON ya
-     preparado y probado la sintaxis — solo falta que la cuenta deje
-     de recibir el 403) con Code Owners obligatorio.
-   - Si público: cambiar la visibilidad del repo, aplicar el mismo
-     ruleset (sin el bloqueo de plan), y actualizar
-     `docs/COMO-SOLICITAR-UNA-SUBIDA.md` a la variante de fork en vez
-     de colaborador directo.
-3. Publicar una primera página de prueba (de Thaliesin) por Pull
-   Request, de principio a fin: comprobar que `validar.yml` comenta
-   bien, que el ruleset exige la aprobación, y que al fusionar
-   `deploy.yml` publica la página de verdad.
-4. Invitar a los amigos colaboradores (si se quedó en repo privado) o
-   anunciarles que pueden hacer fork (si pasó a público).
+1. Publicar una primera página de prueba (de Thaliesin) por Pull
+   Request, de principio a fin, y comprobar en la propia PR:
+   - que `validar.yml` corre y sube el artefacto,
+   - que `comentar-validacion.yml` pone el comentario con el resultado,
+   - que el ruleset exige la aprobación antes de poder fusionar,
+   - que al fusionar, `deploy.yml` publica la página de verdad en
+     `eltiburon.win`.
+2. Si algo de lo anterior no se comporta como se espera, corregirlo
+   antes de avisar a nadie.
+3. Avisar a los amigos: enlace a `docs/COMO-SOLICITAR-UNA-SUBIDA.md`.
