@@ -1,0 +1,52 @@
+name: Publicar en Cloudflare Pages
+
+# Se dispara al fusionar en main (es decir, después de la aprobación de
+# la Pull Request) y también a mano desde la pestaña Actions. El job de
+# despliegue usa el entorno "produccion": ahí, y solo ahí, viven los
+# secrets de Cloudflare. Ver docs/PUBLICACION.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # build.mjs necesita el historial para desempatar fechas
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generar dist/
+        run: node scripts/build.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: produccion
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Desplegar en Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=eltiburon-win --branch=main

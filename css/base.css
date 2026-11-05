@@ -1,0 +1,101 @@
+/* ============================================================
+   eltiburon.win — estilos compartidos
+   Fichero COMPARTIDO: solo Thaliesin lo modifica (ver CLAUDE.md).
+   Cada página de paginas/ trae sus propios estilos en
+   css/paginas/<carpeta>.css; esto es solo la base común.
+   ============================================================ */
+
+:root {
+  --bg: #0b0c10;
+  --ink: #f4f4f5;
+  --ink-dim: #9aa0a6;
+  --accent: #4fd1c5;
+  --border: #23262e;
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+a { color: var(--accent); }
+
+/* ---------------------- Enlace al archivo ----------------------
+   Inyectado por scripts/build.mjs al final de cada página, salvo
+   que la propia página incluya el comentario
+   <!-- eltiburon:sin-enlace-archivo -->
+   Ver CLAUDE.md, sección "Enlace al archivo".
+   ---------------------------------------------------------------- */
+
+.eltiburon-archivo-link {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2147483000;
+  background: rgba(11, 12, 16, 0.82);
+  color: var(--ink-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+}
+
+.eltiburon-archivo-link:hover { color: var(--ink); }
+
+/* ---------------------- Página de archivo ---------------------- */
+
+.eltiburon-archivo-index {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 20px 96px;
+}
+
+.eltiburon-archivo-index h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.eltiburon-archivo-index ul {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.eltiburon-archivo-index li {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+
+.eltiburon-archivo-index .fecha {
+  display: inline-block;
+  min-width: 6.5em;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.eltiburon-archivo-index .autor {
+  color: var(--ink-dim);
+}
+
+.eltiburon-archivo-index a {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.eltiburon-archivo-index a:hover { text-decoration: underline; }
+
+.eltiburon-archivo-index .vacio {
+  color: var(--ink-dim);
+  margin-top: 24px;
+}

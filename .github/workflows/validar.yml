@@ -1,0 +1,80 @@
+name: Validar solicitud
+
+# Se ejecuta en cada Pull Request contra main. NO usa pull_request_target
+# y NO tiene acceso a ningún secret: solo lee el diff con git y comenta
+# el resultado. Ver docs/PUBLICACION.md para el razonamiento.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: validar-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar la Pull Request
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Usar el validador de main (evita que una PR manipule su propia validación)
+        run: git checkout ${{ github.event.pull_request.base.sha }} -- scripts/validar-pr.mjs
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validar
+        id: validar
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: node scripts/validar-pr.mjs
+
+      - name: Comentar el resultado en la Pull Request
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body;
+            try {
+              body = fs.readFileSync('validation-report.md', 'utf8');
+            } catch {
+              body = '### ⚠️ El validador no generó informe\n\nRevisa los logs de este workflow.';
+            }
+            const marker = '<!-- eltiburon-validacion -->';
+            body = marker + '\n' + body;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const previo = comments.find((c) => c.body && c.body.includes(marker));
+            if (previo) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: previo.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

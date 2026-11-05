@@ -1,0 +1,16 @@
+{
+  "name": "eltiburon.win",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Web colaborativa de ideas con aprobación — eltiburon.win",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "nueva-pagina": "node scripts/nueva-pagina.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
