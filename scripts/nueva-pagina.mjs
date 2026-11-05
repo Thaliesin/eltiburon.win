@@ -28,6 +28,21 @@ import { stdin, stdout } from "node:process";
 
 const ROOT = process.cwd();
 const REPO_SLUG = "Thaliesin/eltiburon.win"; // usuario/repo — ver CLAUDE.md si cambia
+const [REPO_OWNER, REPO_NAME] = REPO_SLUG.split("/");
+
+// Construye la URL para abrir la Pull Request, tanto si se trabaja
+// clonando el repo original (con acceso de escritura) como desde un
+// fork propio (lo habitual para colaboradores, al ser un repo público).
+function buildCompareUrl(branch) {
+  const originUrl = tryRun("git", ["remote", "get-url", "origin"]) || "";
+  const m = originUrl.match(/github\.com[:/]([^/]+)\/(.+?)(?:\.git)?$/i);
+  const originOwner = m ? m[1] : REPO_OWNER;
+  if (originOwner.toLowerCase() === REPO_OWNER.toLowerCase()) {
+    return `https://github.com/${REPO_SLUG}/compare/main...${branch}?expand=1`;
+  }
+  // origin es un fork: sintaxis de comparación entre repos distintos.
+  return `https://github.com/${REPO_SLUG}/compare/main...${originOwner}:${REPO_NAME}:${branch}?expand=1`;
+}
 
 function die(msg) {
   console.error(`\n❌ ${msg}\n`);
@@ -208,8 +223,14 @@ async function main() {
   console.log(`\nPreparando la Pull Request (rama ${branch}) ...`);
 
   const base = tryRun("git", ["rev-parse", "--abbrev-ref", "HEAD"]) || "main";
-  tryRun("git", ["fetch", "origin", "main"]);
-  const baseRef = tryRun("git", ["rev-parse", "--verify", "origin/main"]) ? "origin/main" : "main";
+  // Si existe un remoto "upstream" (convención habitual al trabajar desde
+  // un fork), parte de ahí para no arrancar de un main desactualizado.
+  const hasUpstream = !!tryRun("git", ["remote", "get-url", "upstream"]);
+  const remoteForBase = hasUpstream ? "upstream" : "origin";
+  tryRun("git", ["fetch", remoteForBase, "main"]);
+  const baseRef = tryRun("git", ["rev-parse", "--verify", `${remoteForBase}/main`])
+    ? `${remoteForBase}/main`
+    : "main";
 
   try {
     run("git", ["checkout", "-b", branch, baseRef]);
@@ -246,7 +267,7 @@ async function main() {
     }
   }
 
-  const compareUrl = `https://github.com/${REPO_SLUG}/compare/main...${branch}?expand=1`;
+  const compareUrl = buildCompareUrl(branch);
   console.log(`\n✅ Rama "${branch}" subida.`);
   console.log(`   Abre la Pull Request aquí (rellena autor/título/descripción):`);
   console.log(`   ${compareUrl}\n`);

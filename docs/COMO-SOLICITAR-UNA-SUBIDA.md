@@ -6,10 +6,11 @@ y lo apruebe**. Lo que tú haces se llama una **Pull Request** ("solicitud
 de cambios"): un paquete con tu página que Thaliesin puede leer,
 comentar y, si le parece bien, aprobar y publicar.
 
-Este repositorio es **privado**, así que antes de nada Thaliesin tiene
-que invitarte como colaborador/a. Te llegará un correo o una
-notificación de GitHub con un botón para aceptar la invitación — acéptala
-antes de seguir estos pasos.
+Este repositorio es **público**, así que no hace falta que nadie te
+invite: cualquiera puede proponer una idea. Como no tienes permiso de
+escritura directo sobre él, tu copia de trabajo es un **fork** (una
+copia del repositorio en tu propia cuenta de GitHub) — es automático y
+gratis, y GitHub te guía en el momento en que haga falta.
 
 Hay dos caminos. Si no usas Git normalmente, ve directo a la **Vía 1**.
 
@@ -32,18 +33,22 @@ Hay dos caminos. Si no usas Git normalmente, ve directo a la **Vía 1**.
    - `mi-idea` — un título corto para tu idea, igual de formateado.
    - GitHub crea las carpetas solas al escribir las barras `/`.
 5. Pega el contenido de tu `index.html` en el recuadro grande.
-6. Baja hasta el final de la página. En **"Commit changes"**, elige la
-   opción **"Create a new branch for this commit and start a pull
-   request"** (no "Commit directly to the main branch" — esa opción no
-   te va a funcionar, porque nadie salvo Thaliesin puede subir
-   directamente a `main`). Pon un nombre a la rama si quieres, o deja
-   el que te propone GitHub.
-7. Pulsa **Propose changes**.
+6. Baja hasta el final de la página y pulsa **"Propose changes"** (o
+   "Commit changes"). Como no tienes permiso de escritura directo sobre
+   este repositorio, GitHub te va a avisar: **"You need to fork this
+   repository to propose changes"**, con un botón **"Fork this
+   repository"** — púlsalo. Hace la copia a tu cuenta y guarda tu
+   fichero ahí, en una rama nueva, en un solo paso.
+7. Te lleva a una pantalla para abrir la Pull Request — de momento no
+   la abras todavía (pulsa fuera o espera), vas a añadir el resto de
+   ficheros primero en el siguiente paso.
 
 ### 2. Añade tu CSS, tu JS y tus imágenes (si los tienes)
 
-En la misma rama que acabas de crear (arriba a la izquierda, donde
-antes ponía "main", ahora pone el nombre de tu rama):
+Ahora estás trabajando en **tu fork** (arriba a la izquierda pone
+`tu-usuario/eltiburon.win`, no `Thaliesin/eltiburon.win`), en la rama
+que se acaba de crear. Sigue en tu fork para todo lo de abajo — no
+hace falta volver al repositorio original:
 
 1. Ve a la carpeta `css/paginas/` → **Add file → Upload files** → sube
    tu fichero `.css` y renómbralo exactamente igual que tu carpeta:
@@ -82,11 +87,16 @@ Si cambiaste algo después de crear el fichero, edítalo desde la web
 
 ### 4. Abre la Pull Request
 
-1. Ve a la pestaña **Pull requests** del repositorio → debería
-   aparecer un aviso para tu rama → **Compare & pull request**.
-2. Rellena la plantilla que aparece: tu nombre, el título de tu idea y
+1. Ve a la pestaña **Pull requests** de **tu fork** (`tu-usuario/eltiburon.win`)
+   → debería aparecer un aviso amarillo para tu rama → **Compare & pull
+   request**. Si no lo ves, ve a `https://github.com/Thaliesin/eltiburon.win`
+   y pulsa **New pull request → compare across forks**; como "head
+   repository" elige tu fork y tu rama.
+2. Comprueba arriba que dice algo como
+   `base: Thaliesin/eltiburon.win main ← compare: tu-usuario/eltiburon.win tu-rama`.
+3. Rellena la plantilla que aparece: tu nombre, el título de tu idea y
    una descripción breve. No borres el checklist — repásalo.
-3. Pulsa **Create pull request**.
+4. Pulsa **Create pull request**.
 
 Listo. En poco tiempo verás un comentario automático diciéndote si todo
 está en regla. Si algo falla, te dice exactamente qué — corrígelo
@@ -100,12 +110,19 @@ hacer nada más.
 
 ## Vía 2 — Con Git, o con el script `nueva-pagina`
 
-Si tienes Git instalado y ya tienes clonado el repositorio con acceso
-de escritura (porque te han añadido como colaborador):
+Si tienes Git instalado:
 
-```
-node scripts/nueva-pagina.mjs ruta/a/tu/carpeta --titulo "Mi idea" --autor "Tu nombre"
-```
+1. Haz fork del repositorio desde `https://github.com/Thaliesin/eltiburon.win`
+   (botón **Fork**, arriba a la derecha).
+2. Clona **tu fork**, no el original:
+   ```
+   git clone https://github.com/tu-usuario/eltiburon.win.git
+   cd eltiburon.win
+   ```
+3. Crea tu página y la Pull Request con el script:
+   ```
+   node scripts/nueva-pagina.mjs ruta/a/tu/carpeta --titulo "Mi idea" --autor "Tu nombre"
+   ```
 
 `ruta/a/tu/carpeta` puede ser una carpeta con tu `index.html` (y,
 opcionalmente, un `.css`, un `.js` y una subcarpeta `img/` dentro), o
@@ -116,13 +133,22 @@ El script:
 - mueve tu CSS y tu JS a `css/paginas/` y `js/paginas/` con ese mismo
   nombre, y ajusta las rutas de tu `index.html` a absolutas,
 - deja tus imágenes dentro de tu propia carpeta,
-- crea la rama, hace el commit y la sube,
-- te da el enlace para abrir la Pull Request (o la abre sola, si tienes
-  instalado `gh`, la herramienta de línea de comandos de GitHub).
+- crea la rama, hace el commit y la sube a **tu fork**,
+- te da el enlace para abrir la Pull Request contra `Thaliesin/eltiburon.win`
+  (o la abre sola, si tienes instalado `gh`, la herramienta de línea de
+  comandos de GitHub).
 
 Funciona igual en Windows, macOS y Linux (necesita Node 20 o más
-reciente). Requiere tener acceso de escritura al repositorio — si no lo
-tienes, usa la Vía 1.
+reciente). Si en algún momento quieres traerte los cambios más
+recientes del repositorio original a tu fork:
+```
+git remote add upstream https://github.com/Thaliesin/eltiburon.win.git
+git fetch upstream
+git merge upstream/main
+```
+(el script detecta solo si tienes este remoto `upstream` configurado y
+lo usa como base en vez de tu fork, para no partir de una copia
+desactualizada).
 
 ---
 

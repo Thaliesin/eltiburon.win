@@ -1,0 +1,69 @@
+name: Comentar validación
+
+# Workflow "de confianza": se dispara cuando termina "Validar solicitud",
+# corre siempre con el código de main (nunca con el de la PR/fork) y
+# solo lee el informe que dejó como artefacto — por eso puede tener
+# permiso de escritura en la Pull Request sin riesgo, aunque la PR
+# venga de un fork. Ver docs/PUBLICACION.md.
+
+on:
+  workflow_run:
+    workflows: ["Validar solicitud"]
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  comentar:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Descargar el informe de "Validar solicitud"
+        uses: actions/download-artifact@v4
+        with:
+          name: validation-report
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comentar en la Pull Request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let prNumber;
+            try {
+              prNumber = parseInt(fs.readFileSync('pr-number.txt', 'utf8').trim(), 10);
+            } catch {
+              core.warning('No se encontró pr-number.txt en el artefacto; nada que comentar.');
+              return;
+            }
+            let body;
+            try {
+              body = fs.readFileSync('validation-report.md', 'utf8');
+            } catch {
+              body = '### ⚠️ El validador no generó informe\n\nRevisa los logs del workflow "Validar solicitud".';
+            }
+            const marker = '<!-- eltiburon-validacion -->';
+            body = marker + '\n' + body;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const previo = comments.find((c) => c.body && c.body.includes(marker));
+            if (previo) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: previo.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
