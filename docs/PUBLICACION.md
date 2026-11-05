@@ -8,104 +8,121 @@ trabajo en otra sesión: lee este fichero entero y ve directo a
 
 | Dato | Valor |
 |---|---|
-| Repositorio | `Thaliesin/eltiburon.win` — **confirmado** (la cuenta de GitHub del usuario usa el mismo email que el de esta sesión) |
-| Visibilidad | **Privada** (según el usuario — pendiente de confirmar por API: falta acceso de GitHub, ver más abajo) |
-| Carpeta local | `C:\desarrollo\eltiburon.win` (nueva, distinta de `C:\desarrollo\eltibuton.win`, que es otro proyecto sin relación) |
-| Dominio | `https://eltiburon.win/` — **sin** `www` |
-| Aprobador único | `Thaliesin` — **confirmado** |
-| Proyecto Cloudflare Pages | `eltiburon-win` — **creado**, en `https://eltiburon-win.pages.dev` |
+| Repositorio | `Thaliesin/eltiburon.win` — confirmado |
+| Visibilidad | **Privada** — confirmado por API (`gh repo view`) |
+| Plan de GitHub | **Free** — confirmado por API: no permite branch protection/rulesets en repos privados (ver bloqueo más abajo, es el único punto que falta) |
+| Carpeta local | `C:\desarrollo\eltiburon.win` (nueva, distinta de `C:\desarrollo\eltibuton.win`, otro proyecto del usuario sin relación) |
+| Dominio | `https://eltiburon.win/` — **sin** `www` — **activo**, responde 200 |
+| Aprobador único | `Thaliesin` — confirmado |
+| Proyecto Cloudflare Pages | `eltiburon-win`, modo Direct Upload — **creado y publicando** |
 | Cloudflare Account ID | `1b58d65304c59a1739d0951c7851268e` |
-| Aprobación de solicitudes de colaboradores | **Una sola**: la del Pull Request (ruleset). No hay "required reviewers" en el Environment — el despliegue sale automático al fusionar. |
-| Nombre de la web | eltiburon.win (no se pidió un nombre de marca aparte) |
+| Aprobación de solicitudes de colaboradores | **Una sola**: la del Pull Request. Sin "required reviewers" en el Environment — el despliegue sale automático al fusionar. |
+| Nombre de la web | eltiburon.win |
 | Nombre de la sección de archivo | "Archivo", en `/archivo/` |
 
 ## Checklist
 
-### Repositorio y GitHub
-- ✅ Repo clonado en `C:\desarrollo\eltiburon.win`.
-- ✅ Identidad de git configurada, **solo en este repo**: `Thaliesin <david.esquiu@gmail.com>`.
-- ✅ **Primer commit hecho y subido** (`71598fe`): toda la estructura, docs, workflows y scripts de más abajo.
-- ✅ Segundo commit subido (`0ee0f13`): `.gitignore` ignora `.wrangler/` (caché local del CLI de Cloudflare, apareció al desplegar a mano).
-- ❌ `gh` (GitHub CLI) **no está instalado** en esta máquina, y todavía no se ha recibido un Personal Access Token. **Esto bloquea todo lo de más abajo** (ruleset, Code Owners, Environment + secrets, revisión de colaboradores).
-
-### Estructura y ficheros — todo hecho y subido a `main`
-- ✅ `CLAUDE.md`, `README.md`, `docs/PUBLICACION.md` (este fichero), `docs/APROBAR.md`, `docs/COMO-SOLICITAR-UNA-SUBIDA.md`.
-- ✅ `.github/CODEOWNERS` (`* @Thaliesin`), `.github/PULL_REQUEST_TEMPLATE.md`.
-- ✅ `.github/workflows/validar.yml` — sin `pull_request_target`, sin secrets. Ejecuta siempre la copia de `scripts/validar-pr.mjs` de `main` (una PR no puede manipular su propia validación).
-- ✅ `scripts/validar-pr.mjs` — probado con `node --check`. Pendiente probarlo contra una Pull Request real (hace falta la primera PR de verdad).
-- ✅ `.github/workflows/deploy.yml` — build + `cloudflare/wrangler-action`, job de deploy con `environment: produccion`. **Ya se disparó una vez** (al hacer push del primer commit) y **falló en el paso de Cloudflare**, como se esperaba: todavía no existían los secrets. Volverá a dispararse (y esta vez debería funcionar) en cuanto se guarden los secrets en el Environment — ver "Próximo paso".
-- ✅ `scripts/build.mjs` — probado localmente varias veces, incluida la build real que se desplegó a mano hoy. Diseño: cada página vive siempre en `dist/archivo/<slug>/`; la portada es un `_redirects` que reescribe `/` → `/archivo/<la-más-reciente>/`. Detalle en `CLAUDE.md`.
-- ✅ `scripts/nueva-pagina.mjs` — probado de punta a punta con `--no-pr`. No se ha probado todavía el camino que crea rama/commit/push de verdad.
+### Repositorio, estructura y ficheros — ✅ todo hecho y en `main`
+- ✅ Repo clonado, identidad de git local configurada (`Thaliesin <david.esquiu@gmail.com>`, solo en este repo).
+- ✅ Tres commits en `main`: andamiaje inicial (`71598fe`), `.gitignore` de `.wrangler/` (`0ee0f13`), este documento (`a4a7c27`).
+- ✅ `CLAUDE.md`, `README.md`, `docs/APROBAR.md`, `docs/COMO-SOLICITAR-UNA-SUBIDA.md`.
+- ✅ `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`.
+- ✅ `.github/workflows/validar.yml` — sin `pull_request_target`, sin secrets, ejecuta siempre la copia de `scripts/validar-pr.mjs` de `main`. Pendiente probarlo contra una Pull Request real.
+- ✅ `.github/workflows/deploy.yml` — **probado de punta a punta y funcionando**: disparado a mano (`workflow_dispatch`) tras guardar los secrets, build (11 s) + deploy (28 s), los dos en verde. `https://eltiburon-win.pages.dev` y `https://eltiburon.win` sirven el contenido generado.
+- ✅ `scripts/build.mjs`, `scripts/nueva-pagina.mjs` — probados localmente (ver sesión anterior de este documento en el historial de git para el detalle de las pruebas).
 - ✅ `package.json`, `.gitignore`, `paginas/_ejemplo/`, `css/base.css`.
 
-### Cloudflare — hecho hoy
-- ✅ Token de API recibido del usuario, **verificado activo** (`/user/tokens/verify`). Permiso: Account → Cloudflare Pages → Edit. **No tiene permiso de cuentas ni de DNS** (ver más abajo).
-- ✅ Proyecto Pages `eltiburon-win` creado en modo **Direct Upload** (`wrangler pages project create ... --force`; sin integración Git de Cloudflare, tal y como se pidió).
-- ✅ Primer despliegue manual hecho (`wrangler pages deploy dist`) para comprobar que todo funciona: `https://eltiburon-win.pages.dev` sirve correctamente la portada provisional ("todavía no hay ninguna idea publicada").
-- ✅ Dominio `eltiburon.win` asociado al proyecto como *custom domain* (ya existía como zona en esa cuenta de Cloudflare: la API devolvió un `zone_tag`).
-- ⚠️ **El dominio no está activo todavía**: Cloudflare informa `"CNAME record not set"`. El token no tiene permiso de DNS (solo se le pidió Pages:Edit), así que no se pudo crear el registro. **Acción pendiente del usuario** (1 minuto, ver "Próximo paso").
-- ⏳ El `CLOUDFLARE_API_TOKEN` y el `CLOUDFLARE_ACCOUNT_ID` están verificados y funcionando, pero **todavía no están guardados como secrets en GitHub** (bloqueado por falta de acceso a GitHub — ver arriba). Mientras tanto no se han escrito en ningún fichero del repositorio; solo se han usado como variables de entorno de esta sesión.
+### Cloudflare — ✅ todo hecho
+- ✅ Proyecto Pages `eltiburon-win` creado en modo Direct Upload (sin integración Git de Cloudflare).
+- ✅ Dominio `eltiburon.win` asociado y **activo** (el usuario añadió el registro CNAME; confirmado con `curl` devolviendo 200).
+- ✅ `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` guardados como secrets del **Environment `produccion`** en GitHub (no del repositorio). No están escritos en ningún fichero versionado.
 
-### Pendiente — lado de GitHub (bloqueado sin `gh` o un token)
-- ⏳ Confirmar visibilidad real del repo.
-- ⏳ Ruleset de `main`: Pull Request obligatoria + aprobación de Thaliesin + check `validar.yml` en verde; prohibido push directo, force-push y borrado, salvo `Thaliesin` como *bypass actor*. Pendiente comprobar si el plan del repo lo permite.
-- ⏳ Activar "Require review from Code Owners".
-- ⏳ Crear el Environment `produccion` y guardar ahí (secrets del entorno, no del repositorio): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (ya verificados, listos para guardar en cuanto haya acceso).
-- ⏳ Revisar colaboradores actuales y confirmar que nadie salvo Thaliesin tiene rol admin.
-- ⏳ Invitar a los amigos colaboradores (rol write como máximo).
-
-### Pendiente — del usuario, fuera de GitHub
-- ⏳ **Añadir el registro DNS del dominio** en el panel de Cloudflare → `eltiburon.win` → DNS → Add record:
-  - Tipo `CNAME`, nombre `@` (raíz), destino `eltiburon-win.pages.dev`, proxy activado (nube naranja).
-  - En cuanto exista, Cloudflare valida solo y el dominio pasa a activo (puede tardar unos minutos).
+### GitHub — acceso conseguido, la mayoría hecho
+- ✅ Token personal clásico del usuario, scope `repo`, verificado contra la API (confirma identidad `Thaliesin`). `gh` CLI ya estaba instalado en la máquina (solo faltaba en el PATH de la sesión); autenticado vía `GH_TOKEN` (el flujo normal `gh auth login --with-token` lo rechazó por no tener el scope `read:org`, que no hace falta para nada de esto — usar la variable de entorno lo evita).
+- ✅ Colaboradores revisados: solo `Thaliesin`, rol admin. Nadie más tiene acceso todavía.
+- ✅ Environment `produccion` creado, sin protection rules (coherente con la aprobación única elegida).
+- ✅ Los dos secrets de Cloudflare guardados ahí (`gh secret set`).
+- ❌ **Ruleset de `main` — BLOQUEADO por el plan.** Intentado con la API moderna (Rulesets) y con la clásica (branch protection): las dos devuelven `403 Upgrade to GitHub Pro or make this repository public to enable this feature`. Confirmado con pruebas reales contra la API, no es una suposición. Es el único requisito de la petición original que falta por cumplir — ver "Decisión pendiente del usuario" más abajo.
+- ⏳ "Require review from Code Owners" — depende de lo anterior (es un parámetro del propio ruleset).
+- ⏳ Invitar a los amigos colaboradores — con sentido dejarlo para después de resolver el ruleset, así no quedan invitados a un repo todavía sin protección.
 
 ### Pendiente — primera página real
-- ⏳ Publicar una primera página (de bienvenida, de Thaliesin) por Pull Request, de principio a fin, antes de invitar a nadie.
+- ⏳ Publicar una primera página (de bienvenida, de Thaliesin) por Pull Request, de principio a fin, en cuanto el ruleset esté activo.
+
+## 🔴 Decisión pendiente del usuario — bloqueo real, no solo burocracia
+
+GitHub **no permite proteger la rama `main` de un repositorio privado en
+el plan Free** — ni con Rulesets (lo nuevo) ni con la protección de rama
+clásica. Las dos vías probadas devuelven el mismo error pidiendo
+upgrade a Pro o hacer el repo público. Sin esto, cualquier colaborador
+con acceso de escritura podría subir directamente a `main` sin pasar
+por una Pull Request, que es justo lo que se quería impedir.
+
+Dos salidas:
+
+1. **Pasar a GitHub Pro** (de pago, revisa el precio actual en
+   github.com/pricing — históricamente unos 4 USD/mes). El repo sigue
+   privado, y todo lo demás queda exactamente como se diseñó: ruleset
+   con tu usuario como único *bypass actor*, Code Owners obligatorio,
+   nada se publica sin tu aprobación. En cuanto esté activado, aplico
+   el ruleset en un minuto (ya está probado, solo falta que la API deje
+   de devolver el 403).
+2. **Hacer el repositorio público.** Gratis, y el ruleset funciona sin
+   más. Cambia dos cosas:
+   - El código fuente (y el historial) se puede ver desde fuera —
+     incluidas las Pull Requests propuestas antes de aprobarlas. El
+     contenido ya publicado en la web es público de todas formas
+     (está en `eltiburon.win`), así que la diferencia real es que las
+     *propuestas todavía no aprobadas* también quedarían visibles.
+   - Tus amigos piden la subida hacienda **fork** en vez de ser
+     invitados como colaboradores (de hecho simplifica un paso: no
+     hace falta gestionar invitaciones). `docs/COMO-SOLICITAR-UNA-SUBIDA.md`
+     tiene ya escrita la variante de "Vía 1" para fork; la until ahora
+     activa es la de colaborador directo — en cuanto decidas, ajusto
+     esa guía a la vía que corresponda.
+
+No voy a decidir esto por ti. Dímelo y en cuanto lo sepa (y, si eliges
+la opción 1, en cuanto esté activado el Pro) remato el ruleset, activo
+Code Owners y lo dejo todo según lo pedido.
 
 ## Decisiones tomadas
 
-- **Carpeta local separada**: `C:\desarrollo\eltiburon.win`, distinta de `C:\desarrollo\eltibuton.win` (otro proyecto del usuario sin relación).
-- **Usuario de GitHub = `Thaliesin`**: confirmado por el usuario (su cuenta de GitHub usa el mismo email que esta sesión, que a su vez coincide con el propietario del repositorio).
-- **Aprobación única, no doble**: elegida explícitamente por el usuario. Sin "required reviewers" en el Environment `produccion`: la aprobación del Pull Request es el único gate.
-- **Diseño de portada/archivo por `_redirects`**: cada página vive siempre en `dist/archivo/<slug>/`; la portada es una reescritura, no una copia. Detallado en `CLAUDE.md`.
-- **Metadato `<meta name="autor">`**: convención añadida para poder mostrar el autor en el listado del archivo sin parsear el nombre de la carpeta de forma ambigua.
-- **Límites de validación**: HTML/CSS/JS hasta 300 KB, imágenes/fuentes hasta 4 MB (ajustables en `scripts/validar-pr.mjs`).
-- **Proyecto Pages creado con `--force`**: la versión más reciente de `wrangler` intenta delegar `pages project create` a "Workers con assets" y falla si no hay ya una carpeta de ficheros estáticos presente; `--force` usa la vía clásica de Cloudflare Pages directamente, que es la que corresponde a un proyecto *Direct Upload* sin integración Git. No hace falta volver a usar `--force` en despliegues futuros (`wrangler pages deploy`), solo se necesitó para la creación inicial del proyecto.
+- **Carpeta local separada**: `C:\desarrollo\eltiburon.win`, distinta de `C:\desarrollo\eltibuton.win`.
+- **Usuario de GitHub = `Thaliesin`**: confirmado por el usuario.
+- **Aprobación única, no doble**: sin "required reviewers" en el Environment `produccion`.
+- **Diseño de portada/archivo por `_redirects`**: cada página vive siempre en `dist/archivo/<slug>/`. Detallado en `CLAUDE.md`.
+- **Metadato `<meta name="autor">`**: convención añadida para el listado del archivo.
+- **Límites de validación**: HTML/CSS/JS hasta 300 KB, imágenes/fuentes hasta 4 MB.
+- **Proyecto Pages creado con `wrangler ... --force`**: necesario una sola vez, para que `wrangler` use la vía clásica de Pages (Direct Upload) en vez de intentar delegar a "Workers con assets". No hace falta en despliegues futuros.
+- **Autenticación de `gh` vía `GH_TOKEN`, no `gh auth login --with-token`**: el token clásico con scope `repo` es suficiente para todo lo que hace falta, pero `gh auth login` por defecto exige también `read:org`, que no se pidió (y no hace falta, al ser un repo personal, no de una organización).
 
 ## Protecciones activas y las que no se pudieron aplicar
 
-- ❌ Ninguna protección de GitHub está aplicada todavía (ni ruleset, ni Environment, ni Code Owners enforcement) — **motivo: sin acceso a `gh`/token de GitHub**. Es el único bloqueo real que queda.
-- ✅ El despliegue a Cloudflare ya no depende de que Cloudflare tenga integración Git con este repo (Direct Upload, confirmado): la única vía de publicar seguirá siendo `deploy.yml` en cuanto tenga los secrets.
-- ⚠️ El dominio personalizado no está activo todavía — motivo: falta el registro DNS (ver "Pendiente — del usuario, fuera de GitHub").
+- ✅ Cloudflare Pages en modo Direct Upload: la única vía de publicar es `deploy.yml` (confirmado, funcionando).
+- ✅ Secrets de Cloudflare solo en el Environment `produccion`, no en el repositorio.
+- ❌ **Ruleset de `main` (Pull Request + aprobación + Code Owners obligatorios, bypass para Thaliesin) — no aplicado.** Motivo: el plan Free de GitHub no permite branch protection en repos privados (confirmado por API, ver sección de arriba). Pendiente de la decisión del usuario (Pro vs. público).
+- Mientras tanto, **no hay ninguna barrera técnica que impida un push directo a `main`** — de hecho, cualquiera con rol write podría saltarse el flujo de Pull Request por completo. No se debe invitar a ningún colaborador hasta resolver esto.
 
 ## Cambios de estructura realizados
 
 - 2026-11-05 — estructura inicial: `css/`, `js/`, `img/`, `paginas/`, `scripts/`, `docs/`, `.github/` (ver `CLAUDE.md`). Commit `71598fe`.
-- 2026-11-05 — `.gitignore` ahora ignora también `.wrangler/`. Commit `0ee0f13`.
+- 2026-11-05 — `.gitignore` ignora también `.wrangler/`. Commit `0ee0f13`.
 
 ## Próximo paso
 
-**Lo único que falta para terminar es acceso a GitHub.** En cuanto el
-usuario dé `gh auth login` hecho, o pegue un Personal Access Token
-clásico (scope `repo`):
-
-1. Confirmar visibilidad del repo y revisar colaboradores/roles.
-2. Crear el ruleset de `main` (Pull Request + aprobación de Thaliesin +
-   check en verde; bypass actor = Thaliesin; sin push directo, sin
-   force-push, sin borrado).
-3. Activar "Require review from Code Owners".
-4. Crear el Environment `produccion` y guardar ahí
-   `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` (ya verificados,
-   solo hay que copiarlos).
-5. Re-disparar `deploy.yml` (`workflow_dispatch` o un commit trivial) y
-   comprobar que esta vez sí despliega solo.
-6. Publicar una primera página de prueba por Pull Request, de
-   principio a fin.
-7. Invitar a los amigos colaboradores.
-
-Aparte, y en paralelo, independiente de GitHub:
-
-- El usuario tiene que añadir el registro CNAME del dominio (ver
-  "Pendiente — del usuario, fuera de GitHub"). Sin esto,
-  `eltiburon-win.pages.dev` funciona perfectamente pero
-  `eltiburon.win` todavía no.
+1. **Esperar la decisión del usuario**: GitHub Pro o repositorio
+   público (ver "Decisión pendiente del usuario").
+2. En cuanto se sepa:
+   - Si Pro: confirmar que ya está activo, aplicar el ruleset (JSON ya
+     preparado y probado la sintaxis — solo falta que la cuenta deje
+     de recibir el 403) con Code Owners obligatorio.
+   - Si público: cambiar la visibilidad del repo, aplicar el mismo
+     ruleset (sin el bloqueo de plan), y actualizar
+     `docs/COMO-SOLICITAR-UNA-SUBIDA.md` a la variante de fork en vez
+     de colaborador directo.
+3. Publicar una primera página de prueba (de Thaliesin) por Pull
+   Request, de principio a fin: comprobar que `validar.yml` comenta
+   bien, que el ruleset exige la aprobación, y que al fusionar
+   `deploy.yml` publica la página de verdad.
+4. Invitar a los amigos colaboradores (si se quedó en repo privado) o
+   anunciarles que pueden hacer fork (si pasó a público).
