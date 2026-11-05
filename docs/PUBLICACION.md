@@ -8,105 +8,104 @@ trabajo en otra sesión: lee este fichero entero y ve directo a
 
 | Dato | Valor |
 |---|---|
-| Repositorio | `Thaliesin/eltiburon.win` (confirmado por el usuario) |
-| Visibilidad | **Privada** (según el usuario — pendiente de confirmar con `gh`/API, ver más abajo) |
+| Repositorio | `Thaliesin/eltiburon.win` — **confirmado** (la cuenta de GitHub del usuario usa el mismo email que el de esta sesión) |
+| Visibilidad | **Privada** (según el usuario — pendiente de confirmar por API: falta acceso de GitHub, ver más abajo) |
 | Carpeta local | `C:\desarrollo\eltiburon.win` (nueva, distinta de `C:\desarrollo\eltibuton.win`, que es otro proyecto sin relación) |
 | Dominio | `https://eltiburon.win/` — **sin** `www` |
-| Aprobador único | `Thaliesin` (inferido de la URL del repo; el usuario dio un email, no un `@usuario` — ver "Decisiones tomadas") |
-| Proyecto Cloudflare Pages | `eltiburon-win` |
+| Aprobador único | `Thaliesin` — **confirmado** |
+| Proyecto Cloudflare Pages | `eltiburon-win` — **creado**, en `https://eltiburon-win.pages.dev` |
+| Cloudflare Account ID | `1b58d65304c59a1739d0951c7851268e` |
 | Aprobación de solicitudes de colaboradores | **Una sola**: la del Pull Request (ruleset). No hay "required reviewers" en el Environment — el despliegue sale automático al fusionar. |
 | Nombre de la web | eltiburon.win (no se pidió un nombre de marca aparte) |
 | Nombre de la sección de archivo | "Archivo", en `/archivo/` |
 
 ## Checklist
 
-### Repositorio y entorno local
-- ✅ Repo clonado en `C:\desarrollo\eltiburon.win` (estaba vacío: sin ramas ni commits).
-- ✅ Acceso de escritura por HTTPS confirmado (credenciales ya configuradas en esta máquina).
+### Repositorio y GitHub
+- ✅ Repo clonado en `C:\desarrollo\eltiburon.win`.
 - ✅ Identidad de git configurada, **solo en este repo**: `Thaliesin <david.esquiu@gmail.com>`.
-- ⚠️ `gh` (GitHub CLI) **no está instalado** en esta máquina. No ha bloqueado el trabajo de ficheros/estructura, pero hace falta para los pasos de GitHub de más abajo (o, en su defecto, un token personal o los pasos manuales que se detallan en "Próximo paso").
+- ✅ **Primer commit hecho y subido** (`71598fe`): toda la estructura, docs, workflows y scripts de más abajo.
+- ✅ Segundo commit subido (`0ee0f13`): `.gitignore` ignora `.wrangler/` (caché local del CLI de Cloudflare, apareció al desplegar a mano).
+- ❌ `gh` (GitHub CLI) **no está instalado** en esta máquina, y todavía no se ha recibido un Personal Access Token. **Esto bloquea todo lo de más abajo** (ruleset, Code Owners, Environment + secrets, revisión de colaboradores).
 
-### Estructura y ficheros (local, todavía sin commit)
-- ✅ Estructura de carpetas creada y confirmada por el usuario: `css/`, `js/`, `img/`, `paginas/`, `scripts/`, `docs/`, `.github/` (ver `CLAUDE.md`).
-- ✅ `CLAUDE.md` — estructura del proyecto.
-- ✅ `README.md`.
-- ✅ `docs/PUBLICACION.md` (este fichero).
-- ✅ `docs/APROBAR.md`.
-- ✅ `docs/COMO-SOLICITAR-UNA-SUBIDA.md`.
-- ✅ `.github/CODEOWNERS` (`* @Thaliesin`).
-- ✅ `.github/PULL_REQUEST_TEMPLATE.md`.
-- ✅ `.github/workflows/validar.yml` — valida la Pull Request, sin `pull_request_target`, sin secrets. Comenta el resultado (edita el mismo comentario en vez de duplicar). **Ejecuta siempre la copia de `scripts/validar-pr.mjs` que hay en `main`**, nunca la del propio PR, para que una solicitud no pueda manipular su propia validación.
-- ✅ `scripts/validar-pr.mjs` — reglas de validación. Probado con `node --check` (sintaxis). Pendiente probarlo contra una Pull Request real (no se puede probar el diff localmente sin commits en main).
-- ✅ `.github/workflows/deploy.yml` — build + `cloudflare/wrangler-action`, job de deploy con `environment: produccion`.
-- ✅ `scripts/build.mjs` — genera `dist/`. **Probado localmente** con páginas de prueba (creadas y borradas después, no se han commiteado): rotación por fecha, desempate por `git log`, inyección del enlace al archivo, comentario de exclusión `<!-- eltiburon:sin-enlace-archivo -->`, extracción de `<title>`/`<meta name="autor">`, copiado de compartidos. Todo correcto.
-  - Diseño: cada página vive siempre en `dist/archivo/<slug>/` (estable para siempre); la portada es un `_redirects` de Cloudflare Pages que reescribe `/` → `/archivo/<la-más-reciente>/` con código 200. Evita cualquier colisión entre imágenes propias de una página y `img/` compartido. Detalle en `CLAUDE.md`, sección "Cómo se publica".
-- ✅ `scripts/nueva-pagina.mjs` — crea página + rama + Pull Request (o da el enlace para abrirla a mano si no hay `gh`). **Probado de punta a punta** con una carpeta de ejemplo (`--no-pr`, sin tocar git de verdad): slug generado bien, acentos fuera, CSS/JS movidos y reescritos a ruta absoluta, meta `autor` insertada. No se ha probado todavía el camino que sí crea rama/commit/push de verdad (no tiene sentido hasta que exista el primer commit en `main`).
-- ✅ `package.json` (sin dependencias de runtime).
-- ✅ `.gitignore` (`dist/`, `node_modules/`, etc.).
-- ✅ `paginas/_ejemplo/` — plantilla de referencia, el build la ignora.
-- ✅ `css/base.css` — estilos compartidos mínimos (incluye el estilo del enlace al archivo y de la página de archivo).
+### Estructura y ficheros — todo hecho y subido a `main`
+- ✅ `CLAUDE.md`, `README.md`, `docs/PUBLICACION.md` (este fichero), `docs/APROBAR.md`, `docs/COMO-SOLICITAR-UNA-SUBIDA.md`.
+- ✅ `.github/CODEOWNERS` (`* @Thaliesin`), `.github/PULL_REQUEST_TEMPLATE.md`.
+- ✅ `.github/workflows/validar.yml` — sin `pull_request_target`, sin secrets. Ejecuta siempre la copia de `scripts/validar-pr.mjs` de `main` (una PR no puede manipular su propia validación).
+- ✅ `scripts/validar-pr.mjs` — probado con `node --check`. Pendiente probarlo contra una Pull Request real (hace falta la primera PR de verdad).
+- ✅ `.github/workflows/deploy.yml` — build + `cloudflare/wrangler-action`, job de deploy con `environment: produccion`. **Ya se disparó una vez** (al hacer push del primer commit) y **falló en el paso de Cloudflare**, como se esperaba: todavía no existían los secrets. Volverá a dispararse (y esta vez debería funcionar) en cuanto se guarden los secrets en el Environment — ver "Próximo paso".
+- ✅ `scripts/build.mjs` — probado localmente varias veces, incluida la build real que se desplegó a mano hoy. Diseño: cada página vive siempre en `dist/archivo/<slug>/`; la portada es un `_redirects` que reescribe `/` → `/archivo/<la-más-reciente>/`. Detalle en `CLAUDE.md`.
+- ✅ `scripts/nueva-pagina.mjs` — probado de punta a punta con `--no-pr`. No se ha probado todavía el camino que crea rama/commit/push de verdad.
+- ✅ `package.json`, `.gitignore`, `paginas/_ejemplo/`, `css/base.css`.
 
-### Nada de esto está todavía commiteado ni subido a GitHub.
+### Cloudflare — hecho hoy
+- ✅ Token de API recibido del usuario, **verificado activo** (`/user/tokens/verify`). Permiso: Account → Cloudflare Pages → Edit. **No tiene permiso de cuentas ni de DNS** (ver más abajo).
+- ✅ Proyecto Pages `eltiburon-win` creado en modo **Direct Upload** (`wrangler pages project create ... --force`; sin integración Git de Cloudflare, tal y como se pidió).
+- ✅ Primer despliegue manual hecho (`wrangler pages deploy dist`) para comprobar que todo funciona: `https://eltiburon-win.pages.dev` sirve correctamente la portada provisional ("todavía no hay ninguna idea publicada").
+- ✅ Dominio `eltiburon.win` asociado al proyecto como *custom domain* (ya existía como zona en esa cuenta de Cloudflare: la API devolvió un `zone_tag`).
+- ⚠️ **El dominio no está activo todavía**: Cloudflare informa `"CNAME record not set"`. El token no tiene permiso de DNS (solo se le pidió Pages:Edit), así que no se pudo crear el registro. **Acción pendiente del usuario** (1 minuto, ver "Próximo paso").
+- ⏳ El `CLOUDFLARE_API_TOKEN` y el `CLOUDFLARE_ACCOUNT_ID` están verificados y funcionando, pero **todavía no están guardados como secrets en GitHub** (bloqueado por falta de acceso a GitHub — ver arriba). Mientras tanto no se han escrito en ningún fichero del repositorio; solo se han usado como variables de entorno de esta sesión.
 
-### Pendiente — lado de GitHub (necesita `gh` o acceso manual)
-- ⏳ Primer commit y push a `main` (el andamiaje de arriba). Como el repo está vacío y sin protección todavía, este primer push puede ir directo.
-- ⏳ Confirmar visibilidad real del repo (`gh repo view` o ajuste manual) — el usuario dijo "privada", no verificado por API todavía.
-- ⏳ Ruleset de `main`: Pull Request obligatoria + mi aprobación + check `validar.yml` en verde; prohibido push directo, force-push y borrado, **salvo** `Thaliesin` como *bypass actor*. Pendiente comprobar si el plan del repo permite rulesets con bypass actor (debería estar disponible en el plan gratuito también para repos privados, pero se confirma antes de aplicar nada).
-- ⏳ Activar "Require review from Code Owners" (el fichero `CODEOWNERS` por sí solo no obliga nada sin este ajuste).
-- ⏳ Crear el Environment `produccion` en GitHub (sin "required reviewers" — aprobación única, ver decisión más arriba) y guardar ahí, como secrets del entorno (no del repositorio):
-  - `CLOUDFLARE_API_TOKEN`
-  - `CLOUDFLARE_ACCOUNT_ID`
-- ⏳ Revisar colaboradores actuales del repo (`gh api repos/Thaliesin/eltiburon.win/collaborators`) y confirmar que nadie salvo Thaliesin tiene rol admin.
-- ⏳ Invitar a los amigos que vayan a colaborar, rol **write** como máximo (o ninguno, si se decide pedirles fork — no aplica mientras el repo sea privado).
+### Pendiente — lado de GitHub (bloqueado sin `gh` o un token)
+- ⏳ Confirmar visibilidad real del repo.
+- ⏳ Ruleset de `main`: Pull Request obligatoria + aprobación de Thaliesin + check `validar.yml` en verde; prohibido push directo, force-push y borrado, salvo `Thaliesin` como *bypass actor*. Pendiente comprobar si el plan del repo lo permite.
+- ⏳ Activar "Require review from Code Owners".
+- ⏳ Crear el Environment `produccion` y guardar ahí (secrets del entorno, no del repositorio): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (ya verificados, listos para guardar en cuanto haya acceso).
+- ⏳ Revisar colaboradores actuales y confirmar que nadie salvo Thaliesin tiene rol admin.
+- ⏳ Invitar a los amigos colaboradores (rol write como máximo).
 
-### Pendiente — lado de Cloudflare
-- ⏳ Crear el proyecto Pages `eltiburon-win` en modo **Direct Upload** (sin integración Git de Cloudflare — la única vía de publicar debe ser `deploy.yml`).
-- ⏳ Generar el `CLOUDFLARE_API_TOKEN` (permiso mínimo: editar Cloudflare Pages en esa cuenta) y obtener el `CLOUDFLARE_ACCOUNT_ID`.
-- ⏳ Asociar el dominio `eltiburon.win` (sin `www`) al proyecto Pages.
+### Pendiente — del usuario, fuera de GitHub
+- ⏳ **Añadir el registro DNS del dominio** en el panel de Cloudflare → `eltiburon.win` → DNS → Add record:
+  - Tipo `CNAME`, nombre `@` (raíz), destino `eltiburon-win.pages.dev`, proxy activado (nube naranja).
+  - En cuanto exista, Cloudflare valida solo y el dominio pasa a activo (puede tardar unos minutos).
 
 ### Pendiente — primera página real
-- ⏳ Publicar una primera página (por ejemplo, de bienvenida, de Thaliesin) siguiendo el propio flujo de Pull Request, para probar el sistema de punta a punta antes de invitar a nadie.
+- ⏳ Publicar una primera página (de bienvenida, de Thaliesin) por Pull Request, de principio a fin, antes de invitar a nadie.
 
 ## Decisiones tomadas
 
-- **Carpeta local separada**: se creó `C:\desarrollo\eltiburon.win` en vez de reutilizar `C:\desarrollo\eltibuton.win` (otro proyecto del usuario, sin relación, ya existente en esa máquina). Motivo: nombres de dominio/repo distintos ("eltiburon" vs "eltibuton"); mezclar los contenidos habría sido un error.
-- **Usuario de GitHub = `Thaliesin`**: el usuario dio un email (`david.esquiu@gmail.com`) en vez de un `@usuario` de GitHub. Se infirió `Thaliesin` del propietario del repositorio (`github.com/Thaliesin/eltiburon.win`) y se usó para `CODEOWNERS`, el bypass actor pendiente de aplicar, y la identidad de los commits locales. **No confirmado explícitamente por el usuario** — si su usuario real de GitHub es otro, hay que corregir `CODEOWNERS`, `scripts/nueva-pagina.mjs` (constante `REPO_SLUG`/menciones) y `scripts/validar-pr.mjs` (constante `OWNER`).
-- **Aprobación única, no doble**: el usuario eligió explícitamente "una" tras la recomendación (doble) que se le ofreció. Se implementa sin "required reviewers" en el Environment `produccion`: la aprobación del Pull Request (ya obligatoria por el ruleset) es el único gate; el despliegue sale automático al fusionar.
-- **Diseño de portada/archivo por `_redirects`** en vez de copiar la página actual a dos sitios (raíz y archivo): decisión técnica tomada durante la implementación, no estaba en la propuesta de estructura original que aprobó el usuario, pero el resultado visible es exactamente el pedido (portada = última aprobada, anteriores accesibles con URL estable) — con la ventaja añadida de eliminar cualquier colisión entre imágenes propias de una página y las compartidas. Detallado en `CLAUDE.md`.
-- **Metadato `<meta name="autor">`**: se añadió esta convención (no estaba explícita en el encargo original) porque el nombre de carpeta `AAAA-MM-DD-autor-titulo` no se puede separar en "autor" y "título" de forma fiable cuando cualquiera de los dos tiene varias palabras. `scripts/nueva-pagina.mjs` la rellena sola; si falta, el archivo muestra un autor genérico en vez de fallar.
-- **Límites de la validación** (`scripts/validar-pr.mjs`): HTML/CSS/JS hasta 300 KB por fichero, imágenes/fuentes hasta 4 MB. Son valores de partida, ajustables en ese mismo fichero si hacen falta.
+- **Carpeta local separada**: `C:\desarrollo\eltiburon.win`, distinta de `C:\desarrollo\eltibuton.win` (otro proyecto del usuario sin relación).
+- **Usuario de GitHub = `Thaliesin`**: confirmado por el usuario (su cuenta de GitHub usa el mismo email que esta sesión, que a su vez coincide con el propietario del repositorio).
+- **Aprobación única, no doble**: elegida explícitamente por el usuario. Sin "required reviewers" en el Environment `produccion`: la aprobación del Pull Request es el único gate.
+- **Diseño de portada/archivo por `_redirects`**: cada página vive siempre en `dist/archivo/<slug>/`; la portada es una reescritura, no una copia. Detallado en `CLAUDE.md`.
+- **Metadato `<meta name="autor">`**: convención añadida para poder mostrar el autor en el listado del archivo sin parsear el nombre de la carpeta de forma ambigua.
+- **Límites de validación**: HTML/CSS/JS hasta 300 KB, imágenes/fuentes hasta 4 MB (ajustables en `scripts/validar-pr.mjs`).
+- **Proyecto Pages creado con `--force`**: la versión más reciente de `wrangler` intenta delegar `pages project create` a "Workers con assets" y falla si no hay ya una carpeta de ficheros estáticos presente; `--force` usa la vía clásica de Cloudflare Pages directamente, que es la que corresponde a un proyecto *Direct Upload* sin integración Git. No hace falta volver a usar `--force` en despliegues futuros (`wrangler pages deploy`), solo se necesitó para la creación inicial del proyecto.
 
 ## Protecciones activas y las que no se pudieron aplicar
 
-Todavía **ninguna protección de GitHub está aplicada** (ni ruleset, ni
-Environment, ni Code Owners enforcement): el repo está vacío y el
-trabajo de hoy ha sido de ficheros locales. Se aplicarán en la próxima
-sesión, en este orden: push inicial → ruleset → Environment + secrets →
-Cloudflare → primera página de prueba.
+- ❌ Ninguna protección de GitHub está aplicada todavía (ni ruleset, ni Environment, ni Code Owners enforcement) — **motivo: sin acceso a `gh`/token de GitHub**. Es el único bloqueo real que queda.
+- ✅ El despliegue a Cloudflare ya no depende de que Cloudflare tenga integración Git con este repo (Direct Upload, confirmado): la única vía de publicar seguirá siendo `deploy.yml` en cuanto tenga los secrets.
+- ⚠️ El dominio personalizado no está activo todavía — motivo: falta el registro DNS (ver "Pendiente — del usuario, fuera de GitHub").
 
 ## Cambios de estructura realizados
 
-- 2026-11-05 — estructura inicial: `css/`, `js/`, `img/`, `paginas/`,
-  `scripts/`, `docs/`, `.github/`, tal y como queda descrito en
-  `CLAUDE.md`. Sin cambios posteriores todavía.
+- 2026-11-05 — estructura inicial: `css/`, `js/`, `img/`, `paginas/`, `scripts/`, `docs/`, `.github/` (ver `CLAUDE.md`). Commit `71598fe`.
+- 2026-11-05 — `.gitignore` ahora ignora también `.wrangler/`. Commit `0ee0f13`.
 
 ## Próximo paso
 
-1. Confirmar con el usuario que `Thaliesin` es su usuario de GitHub
-   (ver "Decisiones tomadas").
-2. Conseguir acceso a `gh` CLI (instalación + `gh auth login`) o un
-   token personal, para poder:
-   - confirmar visibilidad del repo y revisar colaboradores,
-   - crear el ruleset de `main` con bypass actor,
-   - activar "Require review from Code Owners",
-   - crear el Environment `produccion`.
-3. Hacer el primer commit y push del andamiaje actual a `main` (antes
-   de aplicar ningún ruleset, para no bloquearlo).
-4. Aplicar el ruleset y el Environment (paso 2), ya con `main` protegida.
-5. Pedir al usuario el token de Cloudflare y el account ID; crear el
-   proyecto Pages `eltiburon-win` en modo Direct Upload; guardar los
-   secrets en el Environment `produccion`.
-6. Asociar el dominio `eltiburon.win`.
-7. Publicar una primera página de prueba por Pull Request, de
-   principio a fin, para validar todo el sistema.
-8. Invitar a los amigos colaboradores.
+**Lo único que falta para terminar es acceso a GitHub.** En cuanto el
+usuario dé `gh auth login` hecho, o pegue un Personal Access Token
+clásico (scope `repo`):
+
+1. Confirmar visibilidad del repo y revisar colaboradores/roles.
+2. Crear el ruleset de `main` (Pull Request + aprobación de Thaliesin +
+   check en verde; bypass actor = Thaliesin; sin push directo, sin
+   force-push, sin borrado).
+3. Activar "Require review from Code Owners".
+4. Crear el Environment `produccion` y guardar ahí
+   `CLOUDFLARE_API_TOKEN` y `CLOUDFLARE_ACCOUNT_ID` (ya verificados,
+   solo hay que copiarlos).
+5. Re-disparar `deploy.yml` (`workflow_dispatch` o un commit trivial) y
+   comprobar que esta vez sí despliega solo.
+6. Publicar una primera página de prueba por Pull Request, de
+   principio a fin.
+7. Invitar a los amigos colaboradores.
+
+Aparte, y en paralelo, independiente de GitHub:
+
+- El usuario tiene que añadir el registro CNAME del dominio (ver
+  "Pendiente — del usuario, fuera de GitHub"). Sin esto,
+  `eltiburon-win.pages.dev` funciona perfectamente pero
+  `eltiburon.win` todavía no.
