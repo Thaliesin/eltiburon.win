@@ -1,0 +1,28 @@
+.bienvenida {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 64px 20px 96px;
+}
+
+.bienvenida h1 {
+  font-size: 2rem;
+  margin-bottom: 0.3em;
+}
+
+.bienvenida .lead {
+  color: var(--ink-dim);
+  font-size: 1.05rem;
+}
+
+.bienvenida h2 {
+  margin-top: 2em;
+  font-size: 1.1rem;
+}
+
+.bienvenida ol {
+  padding-left: 1.3em;
+}
+
+.bienvenida li {
+  margin-bottom: 0.5em;
+}
